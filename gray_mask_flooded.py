@@ -69,7 +69,7 @@ for row in range(yc_image.shape[0]):
 
 bgr_masked = cv2.cvtColor(yc_image.copy(), cv2.COLOR_YCR_CB2BGR)
 gray_masked = cv2.cvtColor(bgr_masked.copy(), cv2.COLOR_BGR2GRAY)
-cv2.imshow("masked", gray_masked)
+#cv2.imshow("masked", gray_masked)
 #cv2.waitKey()
 
 # Flood holes of mask with contour filling
@@ -86,9 +86,11 @@ def fill_holes_with_contour_filling(gray_mask, inverse=False):
 	if inverse:
 		filled = cv2.bitwise_not(filled)
 
-	cv2.imshow("filled", filled)
-	cv2.waitKey()
+	#cv2.imshow("filled", filled)
+	#cv2.waitKey()
 	return filled
 
 filled = fill_holes_with_contour_filling(gray_masked)
 filled2 = fill_holes_with_contour_filling(filled, inverse=True)
+
+cv2.imwrite('gray_masked.jpg', gray_masked)
