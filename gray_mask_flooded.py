@@ -53,4 +53,42 @@ while queue:
             sum_val += hist[idx]
             queue.append(idx)
 
+# Create Gray Mask from dominant connected history
 
+YCBCR_BLACK = (0, 128, 128)
+YCBCR_WHITE = (255, 128, 128)
+yc_image = cv2.cvtColor(bgr_image.copy(), cv2.COLOR_BGR2YCR_CB)
+for row in range(yc_image.shape[0]):
+	for col in range(yc_image.shape[1]):
+		idx = (row, col)
+		_, cr, cb = yc_image[idx]
+		if (cr, cb) not in connected_hist:
+			yc_image[idx] = YCBCR_BLACK
+		else:
+			yc_image[idx] = YCBCR_WHITE
+
+bgr_masked = cv2.cvtColor(yc_image.copy(), cv2.COLOR_YCR_CB2BGR)
+gray_masked = cv2.cvtColor(bgr_masked.copy(), cv2.COLOR_BGR2GRAY)
+cv2.imshow("masked", gray_masked)
+#cv2.waitKey()
+
+# Flood holes of mask with contour filling
+
+
+def fill_holes_with_contour_filling(gray_mask, inverse=False):
+
+	filled = gray_mask.copy()
+	if inverse:
+		filled = cv2.bitwise_not(filled)
+	contours, _ = cv2.findContours(filled, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+	for cnt in contours:
+		cv2.drawContours(filled, [cnt], 0, 255, -1)
+	if inverse:
+		filled = cv2.bitwise_not(filled)
+
+	cv2.imshow("filled", filled)
+	cv2.waitKey()
+	return filled
+
+filled = fill_holes_with_contour_filling(gray_masked)
+filled2 = fill_holes_with_contour_filling(filled, inverse=True)
