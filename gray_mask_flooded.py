@@ -80,14 +80,18 @@ def fill_holes_with_contour_filling(gray_mask, inverse=False):
 	filled = gray_mask.copy()
 	if inverse:
 		filled = cv2.bitwise_not(filled)
+		cv2.imshow("btwise", filled)
+		cv2.waitKey()
 	contours, _ = cv2.findContours(filled, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 	for cnt in contours:
 		cv2.drawContours(filled, [cnt], 0, 255, -1)
 	if inverse:
 		filled = cv2.bitwise_not(filled)
+		cv2.imshow("btwise2", filled)
+		cv2.waitKey()
 
-	#cv2.imshow("filled", filled)
-	#cv2.waitKey()
+	cv2.imshow("filled", filled)
+	cv2.waitKey()
 	return filled
 
 filled = fill_holes_with_contour_filling(gray_masked)
