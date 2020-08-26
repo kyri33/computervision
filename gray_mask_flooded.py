@@ -94,3 +94,4 @@ filled = fill_holes_with_contour_filling(gray_masked)
 filled2 = fill_holes_with_contour_filling(filled, inverse=True)
 
 cv2.imwrite('gray_masked.jpg', gray_masked)
+cv2.imwrite('double_filled.jpg', filled2)
