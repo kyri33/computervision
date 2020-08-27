@@ -74,7 +74,7 @@ THRESH = 35
 OFFSET_X = 0.01
 OFFSET_Y = 0.2
 ANGLE_DIFF = 0.25
-ANGLE_DIFF2 = 0.3
+ANGLE_DIFF2 = 0.35
 DIST_DIFF = 50
 
 parr = lambda theta1, theta2: abs(theta1 - theta2) < ANGLE_DIFF
@@ -101,7 +101,6 @@ cv2.imshow("padded canny", padded_canny)
 #cv2.waitKey()
 
 lines = cv2.HoughLines(padded_canny.copy(), 1, np.pi/180, THRESH)
-
 '''
 for rho, theta in lines[:, 0]:
     a = np.cos(theta)
@@ -112,7 +111,10 @@ for rho, theta in lines[:, 0]:
     y1 = int(y0 + 1000*(a))
     x2 = int(x0 - 1000*(-b))
     y2 = int(y0 - 1000*(a))
-    cv2.line(padded_canny, (x1, y1), (x2, y2), (255,0,0), 2)
+    col = (122, 0, 0)
+    if theta < 1.0:
+        col = (255, 0, 0)
+    cv2.line(padded_canny, (x1, y1), (x2, y2), col, 2)
 
 cv2.imshow("linedflooded", padded_canny)
 cv2.waitKey()
@@ -120,11 +122,12 @@ cv2.waitKey()
 
 freethrowline = None
 paintline = None
-for line in lines:
+for line in lines[2:]:
     rho, theta = line[0]
+    print(theta)
     if freethrowline is None and parr(theta, baseline[1]) and far(rho, baseline[0]):
         freethrowline = line
-    if paintline is None and parr2(theta, sideline[1]) and far(rho, sideline[0]):
+    if paintline is None and parr2(theta, sideline[1]) and far(rho, sideline[0]) and theta < 1.0:
         paintline = line
 
 for rho, theta in [freethrowline[0], paintline[0]]:
