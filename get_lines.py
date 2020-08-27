@@ -130,6 +130,7 @@ for line in lines[2:]:
     if paintline is None and parr2(theta, sideline[1]) and far(rho, sideline[0]) and theta < 1.0:
         paintline = line
 
+'''
 for rho, theta in [freethrowline[0], paintline[0]]:
     a = np.cos(theta)
     b = np.sin(theta)
@@ -142,4 +143,80 @@ for rho, theta in [freethrowline[0], paintline[0]]:
     cv2.line(padded_canny, (x1, y1), (x2, y2), (255, 0, 0), 2)
     print(theta)
 cv2.imshow("lined padded", padded_canny)
+cv2.waitKey()
+'''
+
+bgr_image = cv2.imread("basketball.png")
+
+for rho, theta in [freethrowline[0], paintline[0], baseline, sideline]:
+    a = np.cos(theta)
+    b = np.sin(theta)
+    x0 = a * rho
+    y0 = b * rho
+    x1 = int(x0 + 1000*(-b))
+    y1 = int(y0 + 1000*(a))
+    x2 = int(x0 - 1000*(-b))
+    y2 = int(y0 - 1000*(a))
+    cv2.line(bgr_image, (x1, y1), (x2, y2), (255, 255, 255), 2)
+
+cv2.imshow("lined", bgr_image)
+cv2.waitKey()
+
+def get_intersection(line_1, line_2):
+    rho_1, theta_1 = line_1
+    rho_2, theta_2 = line_2
+    a_1 = np.cos(theta_1)
+    b_1 = np.sin(theta_1)
+    slope_1 = a_1 / -b_1
+    intercept_1 = rho_1 / b_1
+
+    a_2 = np.cos(theta_2)
+    b_2 = np.sin(theta_2)
+    slope_2 = a_2 / -b_2
+    intercept_2 = rho_2 / b_2
+
+    x_intersection = (intercept_2 - intercept_1) / (slope_1 - slope_2)
+    y_intersection = x_intersection * slope_1 + intercept_1
+
+    return (x_intersection, y_intersection)
+
+freethrowline = freethrowline[0]
+paintline = paintline[0]
+
+base_side = get_intersection(baseline, sideline)
+base_paint = get_intersection(baseline, paintline)
+freethrow_paint = get_intersection(freethrowline, paintline)
+freethrow_side = get_intersection(freethrowline, sideline)
+padding = 3
+td_base_side=np.array([0 + padding, 0 + padding])
+td_base_paint = np.array([10 + padding, 0 + padding])
+td_freethrow_paint = np.array([10 + padding, 5.79 + padding])
+td_freethrow_side = np.array([0 + padding, 5.79 + padding])
+
+scale = 3
+court_width = int((28.65 + padding * 2) * scale)
+court_height = int((15.24 + padding * 2) * scale)
+
+src_pts = np.array([[base_side[0], base_side[1]], [base_paint[0], base_paint[1]], \
+    [freethrow_paint[0], freethrow_paint[1]], [freethrow_side[0], freethrow_side[1]]])
+print(td_base_side * scale, td_base_side)
+dst_pts = np.array([td_base_side * scale, td_base_paint * scale, \
+            td_freethrow_paint * scale, td_freethrow_side * scale])
+print(dst_pts)
+
+h, status = cv2.findHomography(src_pts, dst_pts)
+
+td_court = np.zeros((court_height, court_width), np.uint8)
+print(td_court.shape)
+td_b_s = td_base_side.astype(int)
+td_b_p = td_base_paint.astype(int)
+td_f_p = td_freethrow_paint.astype(int)
+td_f_s = td_freethrow_side.astype(int)
+print(td_b_s, td_b_p, td_f_p, td_f_s)
+td_court[td_b_s[0] * scale, td_b_s[1] * scale] = 255
+td_court[td_b_p[0] * scale, td_b_p[1] * scale] = 255
+td_court[td_f_p[0] * scale, td_f_p[1] * scale] = 255
+td_court[td_f_s[0] * scale, td_f_s[1] * scale] = 255
+
+cv2.imshow("court", td_court)
 cv2.waitKey()
